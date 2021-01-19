@@ -25,6 +25,13 @@ def get_tasks():
     return render_template("tasks.html", tasks=tasks)
 
 
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    query = request.form.get("query")
+    tasks = list(mongo.db.tasks.find({"$text": {"$search": query}}))
+    return render_template("tasks.html", tasks=tasks)
+
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -152,7 +159,7 @@ def get_categories():
     return render_template("categories.html", categories=categories)
 
 
-@app.route("/add/category", methods=["GET", "POST"])
+@app.route("/add_category", methods=["GET", "POST"])
 def add_category():
     if request.method == "POST":
         category = {
@@ -161,6 +168,7 @@ def add_category():
         mongo.db.categories.insert_one(category)
         flash("New Category Added")
         return redirect(url_for("get_categories"))
+
     return render_template("add_category.html")
 
 
@@ -171,7 +179,7 @@ def edit_category(category_id):
             "category_name": request.form.get("category_name")
         }
         mongo.db.categories.update({"_id": ObjectId(category_id)}, submit)
-        flash ("Category successfully Updated")
+        flash("Category Successfully Updated")
         return redirect(url_for("get_categories"))
 
     category = mongo.db.categories.find_one({"_id": ObjectId(category_id)})
